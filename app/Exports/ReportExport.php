@@ -11,15 +11,25 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use App\Models\User;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class ReportExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithMapping
+class ReportExport implements FromCollection, WithHeadings, ShouldAutoSize, WithStyles, WithMapping, WithColumnFormatting
 {
+
+    public function __construct(
+        public string $startdate,
+        public string $enddate
+    )
+    {
+        //
+    }
+
     public function styles(Worksheet $sheet)
     {
         return [
             1 => ['font' => [
                 'bold' => true,
-                'size' => '14px'
+                'size' => 16
                 ]]
         ];
     }
@@ -51,7 +61,7 @@ class ReportExport implements FromCollection, WithHeadings, ShouldAutoSize, With
     public function columnFormats(): array
     {
         return [
-            'D' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+            'D' => NumberFormat::FORMAT_DATE_DATETIME,
             'E' => NumberFormat::FORMAT_DATE_DATETIME,
             'F' => NumberFormat::FORMAT_DATE_DATETIME,
         ];
@@ -59,6 +69,6 @@ class ReportExport implements FromCollection, WithHeadings, ShouldAutoSize, With
     
     public function collection()
     {
-        return User::all();
+        return User::whereBetween('created_at', [$this->startdate, $this->enddate])->get();
     }
 }
